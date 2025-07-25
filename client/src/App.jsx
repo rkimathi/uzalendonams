@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import './App.css'
+
+// Material UI imports
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import theme, { darkTheme } from './theme'
 
 // Layout components
 import Navbar from './components/layout/Navbar'
@@ -12,9 +16,29 @@ import Dashboard from './components/dashboard/Dashboard'
 import TicketList from './components/tickets/TicketList'
 import DeviceMonitoring from './components/monitoring/DeviceMonitoring'
 import AdminPanel from './components/admin/AdminPanel'
+import Login from './components/auth/Login'
+import Register from './components/auth/Register'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 
 // Auth store
 import { useAuthStore } from './stores/authStore'
+
+// Protected route component
+const ProtectedLayout = () => {
+  const { user } = useAuthStore();
+  
+  // If not authenticated, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return (
+    <>
+      <Outlet />
+    </>
+  );
+};
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -45,65 +69,101 @@ function App() {
     setDarkMode(!darkMode)
   }
 
-  // Mock login for demo purposes
+  // Mock login for development purposes only
+  // This should be removed or disabled in production
   const mockLogin = () => {
-    useAuthStore.setState({
-      user: {
-        id: '1',
-        name: 'Demo User',
-        email: 'demo@example.com',
-        role: 'admin'
-      },
-      token: 'mock-token'
-    })
+    // Check if we're in development mode
+    if (import.meta.env.DEV) {
+      useAuthStore.setState({
+        user: {
+          id: '1',
+          name: 'Demo User',
+          email: 'demo@example.com',
+          role: 'admin'
+        },
+        token: 'mock-token'
+      });
+      console.log('Development mode: Auto-login enabled');
+    }
   }
 
-  // Auto-login for demo
+  // Auto-login for development only - can be enabled by uncommenting
+  /*
   useEffect(() => {
-    if (!user) {
-      mockLogin()
+    if (!user && import.meta.env.DEV) {
+      mockLogin();
     }
-  }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once
+  */
 
   return (
-    <Router>
-      <div className="app-layout">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          toggleSidebar={toggleSidebar}
-          darkMode={darkMode}
-        />
-        <div className={`main-content ${sidebarCollapsed ? 'main-content-expanded' : ''}`}>
-          <Navbar
-            toggleSidebar={toggleSidebar}
-            darkMode={darkMode}
-            toggleDarkMode={toggleDarkMode}
+    <ThemeProvider theme={darkMode ? darkTheme : theme}>
+      <CssBaseline />
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          
+          {/* Root route - redirect based on auth status */}
+          <Route
+            path="/"
+            element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
           />
-          <main className="content-area">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
+          
+          {/* Protected routes with layout */}
+          <Route element={
+            <div className="app-layout">
+              <div className="sidebar-container">
+                <Sidebar
+                  collapsed={sidebarCollapsed}
+                  toggleSidebar={toggleSidebar}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className={`main-content ${sidebarCollapsed ? 'main-content-expanded' : ''}`}>
+                <div className="navbar-container">
+                  <Navbar
+                    toggleSidebar={toggleSidebar}
+                    darkMode={darkMode}
+                    toggleDarkMode={toggleDarkMode}
+                  />
+                </div>
+                <main className="content-area">
+                  <Outlet />
+                </main>
+              </div>
+            </div>
+          }>
+            <Route element={<ProtectedLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tickets" element={<TicketList />} />
               <Route path="/monitoring" element={<DeviceMonitoring />} />
               <Route path="/admin" element={<AdminPanel />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          className: 'glass',
-          duration: 4000,
-          style: {
-            background: darkMode ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.1)',
-            color: darkMode ? '#f8fafc' : '#1e293b',
-            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(10px)',
-          },
-        }}
-      />
-    </Router>
+            </Route>
+          </Route>
+          
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: darkMode ? '#1e1e1e' : '#ffffff',
+              color: darkMode ? '#ffffff' : '#1e1e1e',
+              border: darkMode ? '1px solid #333' : '1px solid #e0e0e0',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              borderRadius: '8px',
+            },
+          }}
+        />
+      </Router>
+    </ThemeProvider>
   )
 }
 

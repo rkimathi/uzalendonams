@@ -1,148 +1,327 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  BellIcon,
-  MoonIcon,
-  SunIcon,
-  UserIcon,
-  SearchIcon,
-  MenuIcon,
-  LayoutDashboardIcon
-} from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+
+// Material UI imports
+import {
+  AppBar,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  InputAdornment,
+  InputBase,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Paper,
+  Popover,
+  Toolbar,
+  Typography,
+  alpha,
+  styled,
+  useTheme
+} from '@mui/material';
+
+// Material UI icons
+import {
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon
+} from '@mui/icons-material';
+
+// Styled search input
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(3),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '20ch',
+    },
+  },
+}));
 
 const Navbar = ({ toggleSidebar, darkMode, toggleDarkMode }) => {
   const { user, logout } = useAuthStore();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+  const [notificationsAnchor, setNotificationsAnchor] = useState(null);
+  const theme = useTheme();
+
+  const handleUserMenuOpen = (event) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleNotificationsOpen = (event) => {
+    setNotificationsAnchor(event.currentTarget);
+  };
+
+  const handleNotificationsClose = () => {
+    setNotificationsAnchor(null);
+  };
+
+  const handleLogout = () => {
+    handleUserMenuClose();
+    logout();
+  };
 
   return (
-    <nav className="navbar">
-      <div className="flex justify-between items-center w-full">
+    <AppBar 
+      position="static" 
+      color="default" 
+      elevation={0}
+      sx={{ 
+        backgroundColor: theme.palette.background.paper,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+      }}
+    >
+      <Toolbar>
         {/* Left side - Menu toggle and brand */}
-        <div className="flex items-center">
-          <button
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="toggle sidebar"
             onClick={toggleSidebar}
-            className="btn-icon mr-4 p-2 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-lg"
-            aria-label="Toggle sidebar"
+            sx={{ mr: 2 }}
           >
-            <MenuIcon className="w-5 h-5" />
-          </button>
+            <MenuIcon />
+          </IconButton>
           
-          <div className="flex items-center">
-            <LayoutDashboardIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 mr-2" />
-            <span className="font-semibold text-gray-800 dark:text-white">Uzalendo NMS</span>
-          </div>
-        </div>
+          <Box component={Link} to="/dashboard" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: theme.palette.primary.main,
+                mr: 1,
+                fontSize: 16,
+                fontWeight: 'bold'
+              }}
+            >
+              U
+            </Avatar>
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ 
+                display: { xs: 'none', sm: 'block' },
+                color: theme.palette.text.primary,
+                fontWeight: 600
+              }}
+            >
+              Uzalendo NMS
+            </Typography>
+          </Box>
+        </Box>
 
         {/* Center - Search */}
-        <div className="relative max-w-md w-full mx-6 hidden md:block">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <SearchIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-          </div>
-          <input
-            type="text"
-            className="input w-full pl-10"
-            placeholder="Search..."
+        <Search sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, maxWidth: 400, mx: 'auto' }}>
+          <SearchIconWrapper>
+            <SearchIcon />
+          </SearchIconWrapper>
+          <StyledInputBase
+            placeholder="Search…"
+            inputProps={{ 'aria-label': 'search' }}
           />
-        </div>
+        </Search>
 
         {/* Right side icons */}
-        <div className="flex items-center space-x-4">
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* Dark mode toggle */}
-          <button
+          <IconButton
+            color="inherit"
             onClick={toggleDarkMode}
-            className="btn-icon p-2 bg-secondary-50 dark:bg-secondary-900/30 rounded-lg"
-            aria-label="Toggle dark mode"
+            sx={{ ml: 1 }}
+            aria-label="toggle dark mode"
           >
-            {darkMode ? (
-              <SunIcon className="w-5 h-5 text-yellow-400" />
-            ) : (
-              <MoonIcon className="w-5 h-5 text-secondary-700" />
-            )}
-          </button>
+            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
 
           {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="btn-icon p-2 bg-secondary-50 dark:bg-secondary-900/30 rounded-lg"
-              aria-label="Notifications"
-            >
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-glow">
-                3
-              </span>
-              <BellIcon className="w-5 h-5 text-secondary-700 dark:text-secondary-300" />
-            </button>
-
-            {/* Notifications dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 glass-card py-2 z-50 shadow-lg">
-                <div className="px-4 py-2 font-medium border-b border-gray-200/20 dark:border-gray-700/30 text-primary-700 dark:text-primary-400">
-                  Notifications
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {/* Notification items */}
-                  <div className="px-4 py-3 hover:bg-white/10 dark:hover:bg-black/20 border-b border-gray-200/20 dark:border-gray-700/30">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">New critical alert</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">Server CPU usage above 90%</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">10 minutes ago</p>
-                  </div>
-                  <div className="px-4 py-3 hover:bg-white/10 dark:hover:bg-black/20">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">Ticket assigned</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">Ticket #1234 has been assigned to you</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="px-4 py-2 text-center text-sm text-primary-600 dark:text-primary-400 border-t border-gray-200/20 dark:border-gray-700/30">
-                  <Link to="/notifications" className="hover:underline">View all notifications</Link>
-                </div>
-              </div>
-            )}
-          </div>
+          <IconButton
+            color="inherit"
+            onClick={handleNotificationsOpen}
+            sx={{ ml: 1 }}
+            aria-label="show notifications"
+          >
+            <Badge badgeContent={3} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+          <Popover
+            open={Boolean(notificationsAnchor)}
+            anchorEl={notificationsAnchor}
+            onClose={handleNotificationsClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            PaperProps={{
+              elevation: 3,
+              sx: { width: 320, maxHeight: 400 }
+            }}
+          >
+            <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="subtitle1" fontWeight="medium">Notifications</Typography>
+            </Box>
+            <List sx={{ p: 0 }}>
+              <ListItem button sx={{ py: 1.5, px: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                <ListItemText
+                  primary="New critical alert"
+                  secondary="Server CPU usage above 90%"
+                  secondaryTypographyProps={{ 
+                    fontSize: '0.75rem',
+                    color: 'text.secondary',
+                    sx: { mt: 0.5 }
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">10m ago</Typography>
+              </ListItem>
+              <ListItem button sx={{ py: 1.5, px: 2 }}>
+                <ListItemText
+                  primary="Ticket assigned"
+                  secondary="Ticket #1234 has been assigned to you"
+                  secondaryTypographyProps={{ 
+                    fontSize: '0.75rem',
+                    color: 'text.secondary',
+                    sx: { mt: 0.5 }
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">1h ago</Typography>
+              </ListItem>
+            </List>
+            <Box sx={{ p: 1.5, borderTop: `1px solid ${theme.palette.divider}`, textAlign: 'center' }}>
+              <Button 
+                component={Link} 
+                to="/notifications" 
+                size="small" 
+                color="primary"
+                onClick={handleNotificationsClose}
+              >
+                View all notifications
+              </Button>
+            </Box>
+          </Popover>
 
           {/* User menu */}
-          <div className="relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 btn-icon px-3 py-2 bg-primary-50 dark:bg-primary-900/30 rounded-lg"
-              aria-label="User menu"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-800/50 flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              </div>
-              <span className="hidden md:block text-sm font-medium text-primary-700 dark:text-primary-300">
+          <Button
+            onClick={handleUserMenuOpen}
+            color="inherit"
+            sx={{ 
+              ml: 2,
+              textTransform: 'none',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            startIcon={
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: theme.palette.primary.main,
+                  fontSize: 14,
+                  fontWeight: 'bold'
+                }}
+              >
+                {user?.name?.charAt(0) || 'U'}
+              </Avatar>
+            }
+          >
+            <Box sx={{ display: { xs: 'none', md: 'block' }, ml: 1 }}>
+              <Typography variant="body2" component="span" sx={{ fontWeight: 500 }}>
                 {user?.name || 'User'}
-              </span>
-            </button>
-
-            {/* User dropdown */}
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 glass-card py-2 z-50 shadow-lg">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-black/20"
-                >
-                  Profile
-                </Link>
-                <Link
-                  to="/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-black/20"
-                >
-                  Settings
-                </Link>
-                <button
-                  onClick={logout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-black/20"
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+              </Typography>
+            </Box>
+          </Button>
+          <Menu
+            anchorEl={userMenuAnchor}
+            open={Boolean(userMenuAnchor)}
+            onClose={handleUserMenuClose}
+            PaperProps={{
+              elevation: 3,
+              sx: { width: 200, mt: 1.5 }
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Typography variant="subtitle2">{user?.name || 'User'}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                {user?.email || 'user@example.com'}
+              </Typography>
+            </Box>
+            <Divider />
+            <MenuItem component={Link} to="/profile" onClick={handleUserMenuClose}>
+              <ListItemIcon>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>
+            <MenuItem component={Link} to="/settings" onClick={handleUserMenuClose}>
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Settings</ListItemText>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+              <ListItemIcon sx={{ color: 'error.main' }}>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Sign out</ListItemText>
+            </MenuItem>
+          </Menu>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

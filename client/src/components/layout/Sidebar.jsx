@@ -1,31 +1,53 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  HomeIcon,
-  TicketIcon,
-  ServerIcon,
-  UsersIcon,
-  SettingsIcon,
-  BarChartIcon,
-  AlertTriangleIcon,
-  MenuIcon,
-  XIcon,
-  ShieldIcon,
-  LogOutIcon
-} from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+
+// Material UI imports
+import {
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Typography,
+  Avatar,
+  Button,
+  IconButton,
+  useTheme,
+  alpha
+} from '@mui/material';
+
+// Material UI icons
+import {
+  Dashboard as DashboardIcon,
+  ConfirmationNumber as TicketIcon,
+  Storage as ServerIcon,
+  People as PeopleIcon,
+  Settings as SettingsIcon,
+  BarChart as BarChartIcon,
+  Warning as WarningIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Security as SecurityIcon,
+  Logout as LogoutIcon
+} from '@mui/icons-material';
 
 const Sidebar = ({ collapsed, toggleSidebar }) => {
   const { user, logout } = useAuthStore();
   const location = useLocation();
+  const theme = useTheme();
 
   const isAdmin = user?.role === 'admin';
+  const drawerWidth = collapsed ? 72 : 240;
 
   const menuItems = [
     {
       name: 'Dashboard',
-      icon: HomeIcon,
-      path: '/',
+      icon: DashboardIcon,
+      path: '/dashboard',
       exact: true
     },
     {
@@ -40,7 +62,7 @@ const Sidebar = ({ collapsed, toggleSidebar }) => {
     },
     {
       name: 'Alerts',
-      icon: AlertTriangleIcon,
+      icon: WarningIcon,
       path: '/alerts'
     },
     {
@@ -50,13 +72,13 @@ const Sidebar = ({ collapsed, toggleSidebar }) => {
     },
     {
       name: 'Users',
-      icon: UsersIcon,
+      icon: PeopleIcon,
       path: '/users',
       adminOnly: true
     },
     {
       name: 'Admin',
-      icon: ShieldIcon,
+      icon: SecurityIcon,
       path: '/admin',
       adminOnly: true
     },
@@ -68,115 +90,227 @@ const Sidebar = ({ collapsed, toggleSidebar }) => {
   ];
 
   const isActive = (path) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    if (path === '/dashboard' && (location.pathname === '/dashboard' || location.pathname === '/')) return true;
+    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
     return false;
   };
 
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar-collapsed' : ''}`}>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: drawerWidth,
+          boxSizing: 'border-box',
+          borderRight: `1px solid ${theme.palette.divider}`,
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+          overflowX: 'hidden',
+        },
+      }}
+    >
       {/* Sidebar header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-white/10 dark:border-white/5">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: theme.spacing(2),
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          minHeight: 64,
+        }}
+      >
         {!collapsed && (
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-tertiary-600 flex items-center justify-center text-white font-bold">
+          <Box
+            component={Link}
+            to="/dashboard"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: theme.palette.primary.main,
+                fontSize: 16,
+                fontWeight: 'bold',
+                mr: 1,
+              }}
+            >
               U
-            </div>
-            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-tertiary-600">
+            </Avatar>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 700,
+                background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
               Uzalendo NMS
-            </span>
-          </Link>
+            </Typography>
+          </Box>
         )}
-        <button
-          onClick={toggleSidebar}
-          className="btn-icon p-2 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-lg"
-          aria-label="Toggle sidebar"
-        >
-          {collapsed ? <MenuIcon size={20} /> : <XIcon size={20} />}
-        </button>
-      </div>
+        <IconButton onClick={toggleSidebar} size="small">
+          {collapsed ? <MenuIcon /> : <CloseIcon />}
+        </IconButton>
+      </Box>
 
       {/* Navigation */}
-      <nav className="mt-6 px-3">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            if (item.adminOnly && !isAdmin) return null;
-            
-            return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 group ${
-                    isActive(item.path)
-                      ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400 shadow-sm'
-                      : 'text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-900/30'
-                  }`}
+      <List sx={{ mt: 2, px: 1 }}>
+        {menuItems.map((item) => {
+          if (item.adminOnly && !isAdmin) return null;
+          
+          const active = isActive(item.path);
+          
+          return (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={active}
+                sx={{
+                  minHeight: 48,
+                  px: 2.5,
+                  borderRadius: 1,
+                  justifyContent: collapsed ? 'center' : 'initial',
+                  '&.Mui-selected': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    mr: collapsed ? 0 : 2,
+                    justifyContent: 'center',
+                    color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+                  }}
                 >
-                  <item.icon className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'} ${
-                    isActive(item.path)
-                      ? 'text-primary-600 dark:text-primary-400'
-                      : 'text-secondary-500 dark:text-secondary-400 group-hover:text-secondary-700 dark:group-hover:text-secondary-300'
-                  }`} />
-                  {!collapsed && (
-                    <span className={`text-sm font-medium ${
-                      isActive(item.path)
-                        ? 'text-primary-700 dark:text-primary-400'
-                        : 'text-secondary-700 dark:text-secondary-300'
-                    }`}>
-                      {item.name}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+                  <item.icon />
+                </ListItemIcon>
+                {!collapsed && (
+                  <ListItemText 
+                    primary={item.name} 
+                    primaryTypographyProps={{ 
+                      fontSize: 14,
+                      fontWeight: active ? 600 : 500,
+                      color: active ? theme.palette.primary.main : theme.palette.text.primary,
+                    }}
+                  />
+                )}
+                {active && !collapsed && (
+                  <Box
+                    sx={{
+                      width: 4,
+                      height: 20,
+                      borderRadius: 2,
+                      bgcolor: theme.palette.primary.main,
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
 
       {/* Footer */}
-      <div className="absolute bottom-0 w-full p-4 border-t border-white/10 dark:border-white/5 bg-white/5 dark:bg-black/5">
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          width: '100%',
+          p: 2,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.8),
+        }}
+      >
         {!collapsed ? (
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                <UsersIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-secondary-900 dark:text-white truncate">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Avatar
+                sx={{
+                  width: 40,
+                  height: 40,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                }}
+              >
+                {user?.name?.charAt(0) || 'U'}
+              </Avatar>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" fontWeight={600} noWrap>
                   {user?.name || 'User'}
-                </p>
-                <p className="text-xs text-secondary-500 dark:text-secondary-400 truncate">
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
                   {user?.email || 'user@example.com'}
-                </p>
-              </div>
-            </div>
+                </Typography>
+              </Box>
+            </Box>
             
-            <button
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<LogoutIcon />}
               onClick={logout}
-              className="flex items-center justify-center w-full py-2.5 px-4 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-800 rounded-lg shadow-sm transition-colors"
+              fullWidth
+              sx={{ textTransform: 'none' }}
             >
-              <LogOutIcon className="h-4 w-4 mr-2" />
               Sign out
-            </button>
+            </Button>
             
-            <div className="text-xs text-center text-secondary-500 dark:text-secondary-400 pt-2">
-              <p>Uzalendo NMS v1.0</p>
-              <p>© 2025 Uzalendo Systems</p>
-            </div>
-          </div>
+            <Box sx={{ textAlign: 'center', mt: 1 }}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                Uzalendo NMS v1.0
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block">
+                © 2025 Uzalendo Systems
+              </Typography>
+            </Box>
+          </Box>
         ) : (
-          <div className="flex flex-col items-center space-y-4">
-            <button
-              onClick={logout}
-              className="p-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-800 text-white rounded-lg shadow-sm transition-colors"
-              aria-label="Sign out"
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+              }}
             >
-              <LogOutIcon className="h-5 w-5" />
-            </button>
-          </div>
+              {user?.name?.charAt(0) || 'U'}
+            </Avatar>
+            <IconButton
+              color="primary"
+              onClick={logout}
+              size="small"
+              sx={{ 
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  bgcolor: theme.palette.primary.dark,
+                }
+              }}
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Box>
         )}
-      </div>
-    </aside>
+      </Box>
+    </Drawer>
   );
 };
 
