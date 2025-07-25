@@ -1,16 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ServerIcon,
-  WifiIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  AlertTriangleIcon,
-  ChevronRightIcon,
-  HardDriveIcon
-} from 'lucide-react';
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Grid,
+  Typography,
+  useTheme,
+  alpha
+} from '@mui/material';
+import {
+  Storage as ServerIcon,
+  Wifi as WifiIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as XCircleIcon,
+  Warning as AlertTriangleIcon,
+  ChevronRight as ChevronRightIcon,
+  Memory as HardDriveIcon
+} from '@mui/icons-material';
 
 const DeviceStatus = ({ devices }) => {
+  const theme = useTheme();
   const getDeviceIcon = (type) => {
     switch (type) {
       case 'router':
@@ -41,10 +53,10 @@ const DeviceStatus = ({ devices }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      online: 'status-online',
-      offline: 'status-offline',
-      warning: 'status-warning',
-      maintenance: 'bg-blue-100/80 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
+      online: theme.palette.success,
+      offline: theme.palette.error,
+      warning: theme.palette.warning,
+      maintenance: theme.palette.info
     };
     return colors[status] || colors.offline;
   };
@@ -67,78 +79,160 @@ const DeviceStatus = ({ devices }) => {
   }, {});
 
   return (
-    <div className="dashboard-card h-full">
-      <div className="dashboard-card-header">
-        <h2 className="dashboard-card-title">Device Status</h2>
-        <Link
-          to="/monitoring"
-          className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          View all
-        </Link>
-      </div>
+    <Card elevation={2} sx={{ height: '100%' }}>
+      <CardHeader
+        title="Device Status"
+        action={
+          <Link
+            to="/monitoring"
+            style={{
+              color: theme.palette.primary.main,
+              textDecoration: 'none',
+              fontSize: '0.875rem'
+            }}
+          >
+            View all
+          </Link>
+        }
+      />
       
-      <div className="mt-4">
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {statusSummary.online || 0}
-            </div>
-            <div className="text-sm text-green-800 dark:text-green-300">Online</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-              {statusSummary.warning || 0}
-            </div>
-            <div className="text-sm text-yellow-800 dark:text-yellow-300">Warning</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {statusSummary.offline || 0}
-            </div>
-            <div className="text-sm text-red-800 dark:text-red-300">Offline</div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {devicesToShow.map((device) => (
-            <Link
-              key={device.id}
-              to={`/monitoring/devices/${device.id}`}
-              className="block glass-card p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200"
+      <CardContent sx={{ pt: 0 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={4}>
+            <Card
+              sx={{
+                p: 2,
+                textAlign: 'center',
+                bgcolor: alpha(theme.palette.background.paper, 0.5)
+              }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-full ${
-                    device.status === 'online'
-                      ? 'bg-green-100/50 dark:bg-green-900/30'
-                      : device.status === 'warning'
-                        ? 'bg-yellow-100/50 dark:bg-yellow-900/30'
-                        : 'bg-red-100/50 dark:bg-red-900/30'
-                  }`}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{ color: theme.palette.success.main }}
+              >
+                {statusSummary.online || 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: theme.palette.success.dark }}
+              >
+                Online
+              </Typography>
+            </Card>
+          </Grid>
+          <Grid item xs={4}>
+            <Card
+              sx={{
+                p: 2,
+                textAlign: 'center',
+                bgcolor: alpha(theme.palette.background.paper, 0.5)
+              }}
+            >
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{ color: theme.palette.warning.main }}
+              >
+                {statusSummary.warning || 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: theme.palette.warning.dark }}
+              >
+                Warning
+              </Typography>
+            </Card>
+          </Grid>
+          <Grid item xs={4}>
+            <Card
+              sx={{
+                p: 2,
+                textAlign: 'center',
+                bgcolor: alpha(theme.palette.background.paper, 0.5)
+              }}
+            >
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{ color: theme.palette.error.main }}
+              >
+                {statusSummary.offline || 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: theme.palette.error.dark }}
+              >
+                Offline
+              </Typography>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {devicesToShow.map((device) => (
+            <Card
+              key={device.id}
+              component={Link}
+              to={`/monitoring/devices/${device.id}`}
+              sx={{
+                p: 2,
+                display: 'block',
+                textDecoration: 'none',
+                bgcolor: alpha(theme.palette.background.paper, 0.5),
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.background.paper, 0.8)
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1,
+                      borderRadius: '50%',
+                      bgcolor: alpha(
+                        device.status === 'online'
+                          ? theme.palette.success.main
+                          : device.status === 'warning'
+                            ? theme.palette.warning.main
+                            : theme.palette.error.main,
+                        0.1
+                      )
+                    }}
+                  >
                     {getDeviceIcon(device.type)}
-                  </div>
-                  <div>
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-900 dark:text-white">
+                  </Box>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography variant="body1" fontWeight="medium" color="text.primary">
                         {device.name}
-                      </span>
-                      <span className={`ml-2 status-badge ${getStatusColor(device.status)}`}>
-                        {device.status}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      </Typography>
+                      <Chip
+                        label={device.status}
+                        size="small"
+                        sx={{
+                          ml: 1,
+                          bgcolor: alpha(getStatusColor(device.status).main, 0.1),
+                          color: getStatusColor(device.status).main,
+                          fontWeight: 500,
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
                       {device.ip} • {device.location}
-                    </div>
-                  </div>
-                </div>
-                <ChevronRightIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-              </div>
-            </Link>
+                    </Typography>
+                  </Box>
+                </Box>
+                <ChevronRightIcon sx={{ color: theme.palette.text.disabled }} />
+              </Box>
+            </Card>
           ))}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

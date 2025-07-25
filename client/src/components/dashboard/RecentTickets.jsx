@@ -1,14 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ChevronRightIcon,
-  TicketIcon
-} from 'lucide-react';
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Typography,
+  useTheme,
+  alpha
+} from '@mui/material';
+import {
+  Warning as AlertTriangleIcon,
+  CheckCircle as CheckCircleIcon,
+  AccessTime as ClockIcon,
+  ChevronRight as ChevronRightIcon,
+  ConfirmationNumber as TicketIcon
+} from '@mui/icons-material';
 
 const RecentTickets = ({ tickets }) => {
+  const theme = useTheme();
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -25,23 +36,23 @@ const RecentTickets = ({ tickets }) => {
       case 'assigned':
       case 'in_progress':
       case 'pending':
-        return <ClockIcon className="h-4 w-4 text-yellow-500" />;
+        return <ClockIcon fontSize="small" sx={{ color: theme.palette.warning.main }} />;
       case 'resolved':
       case 'closed':
-        return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
+        return <CheckCircleIcon fontSize="small" sx={{ color: theme.palette.success.main }} />;
       case 'cancelled':
-        return <AlertTriangleIcon className="h-4 w-4 text-red-500" />;
+        return <AlertTriangleIcon fontSize="small" sx={{ color: theme.palette.error.main }} />;
       default:
-        return <ClockIcon className="h-4 w-4 text-blue-500" />;
+        return <ClockIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />;
     }
   };
 
   const getPriorityColor = (priority) => {
     const colors = {
-      low: 'bg-blue-100/80 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-      medium: 'bg-yellow-100/80 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
-      high: 'bg-orange-100/80 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
-      critical: 'bg-red-100/80 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+      low: theme.palette.primary,
+      medium: theme.palette.warning,
+      high: theme.palette.warning,
+      critical: theme.palette.error
     };
     return colors[priority] || colors.medium;
   };
@@ -85,55 +96,100 @@ const RecentTickets = ({ tickets }) => {
   const ticketsToShow = tickets.length > 0 ? tickets : mockTickets;
 
   return (
-    <div className="dashboard-card h-full">
-      <div className="dashboard-card-header">
-        <h2 className="dashboard-card-title">Recent Tickets</h2>
-        <Link
-          to="/tickets"
-          className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          View all
-        </Link>
-      </div>
-      <div className="space-y-3 mt-4">
-        {ticketsToShow.length === 0 ? (
-          <div className="text-center py-10 glass rounded-lg">
-            <TicketIcon className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">No recent tickets</p>
-          </div>
-        ) : (
-          ticketsToShow.map((ticket) => (
-            <Link
-              key={ticket._id}
-              to={`/tickets/${ticket._id}`}
-              className="block p-4 glass-card hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200"
+    <Card elevation={2} sx={{ height: '100%' }}>
+      <CardHeader
+        title="Recent Tickets"
+        action={
+          <Link
+            to="/tickets"
+            style={{
+              color: theme.palette.primary.main,
+              textDecoration: 'none',
+              fontSize: '0.875rem'
+            }}
+          >
+            View all
+          </Link>
+        }
+      />
+      <CardContent sx={{ pt: 0 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {ticketsToShow.length === 0 ? (
+            <Box
+              sx={{
+                textAlign: 'center',
+                py: 5,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.background.paper, 0.5)
+              }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-full bg-white/20 dark:bg-white/10">
-                    {getStatusIcon(ticket.status)}
-                  </div>
-                  <div>
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {ticket.title}
-                      </span>
-                      <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${getPriorityColor(ticket.priority)}`}>
-                        {ticket.priority}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {ticket.ticketNumber} • {formatDate(ticket.createdAt)}
-                    </div>
-                  </div>
-                </div>
-                <ChevronRightIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-              </div>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
+              <TicketIcon
+                sx={{
+                  fontSize: 48,
+                  color: theme.palette.text.disabled,
+                  mb: 1.5
+                }}
+              />
+              <Typography color="text.secondary">No recent tickets</Typography>
+            </Box>
+          ) : (
+            ticketsToShow.map((ticket) => (
+              <Card
+                key={ticket._id}
+                component={Link}
+                to={`/tickets/${ticket._id}`}
+                sx={{
+                  p: 2,
+                  display: 'block',
+                  textDecoration: 'none',
+                  bgcolor: alpha(theme.palette.background.paper, 0.5),
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.background.paper, 0.8)
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: '50%',
+                        bgcolor: alpha(theme.palette.background.paper, 0.7)
+                      }}
+                    >
+                      {getStatusIcon(ticket.status)}
+                    </Box>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body1" fontWeight="medium" color="text.primary">
+                          {ticket.title}
+                        </Typography>
+                        <Chip
+                          label={ticket.priority}
+                          size="small"
+                          sx={{
+                            ml: 1,
+                            bgcolor: alpha(getPriorityColor(ticket.priority).main, 0.1),
+                            color: getPriorityColor(ticket.priority).main,
+                            fontWeight: 500,
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {ticket.ticketNumber} • {formatDate(ticket.createdAt)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <ChevronRightIcon sx={{ color: theme.palette.text.disabled }} />
+                </Box>
+              </Card>
+            ))
+          )}
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

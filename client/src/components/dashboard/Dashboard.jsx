@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TicketIcon,
-  ServerIcon,
-  UsersIcon,
-  AlertTriangleIcon,
-  TrendingUpIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  RefreshCwIcon
-} from 'lucide-react';
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  IconButton,
+  Typography,
+  useTheme,
+  alpha
+} from '@mui/material';
+import {
+  Refresh as RefreshIcon,
+  ConfirmationNumber as TicketIcon,
+  Storage as ServerIcon,
+  People as UsersIcon,
+  Warning as AlertTriangleIcon,
+  TrendingUp as TrendingUpIcon,
+  AccessTime as ClockIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as XCircleIcon
+} from '@mui/icons-material';
 import { useTicketStore } from '../../stores/ticketStore';
 import { useDeviceStore } from '../../stores/deviceStore';
 import { useSocketStore } from '../../stores/socketStore';
@@ -97,25 +109,48 @@ const Dashboard = () => {
     setTimeout(() => setRefreshing(false), 800); // Add a slight delay for visual feedback
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-    <div className="stat-card">
-      <div className="flex items-center justify-between w-full">
-        <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
-          {trend && (
-            <div className="flex items-center mt-1">
-              <TrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-sm text-green-600 dark:text-green-400">{trend}</span>
-            </div>
-          )}
-        </div>
-        <div className={`stat-icon ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-      </div>
-    </div>
-  );
+  const theme = useTheme();
+
+  const StatCard = ({ title, value, icon: Icon, color, trend }) => {
+    const gradientStyle = {
+      background: color,
+      borderRadius: '50%',
+      width: 48,
+      height: 48,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white'
+    };
+
+    return (
+      <Card elevation={2} sx={{ height: '100%' }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                {title}
+              </Typography>
+              <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>
+                {value}
+              </Typography>
+              {trend && (
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main', mr: 0.5 }} />
+                  <Typography variant="caption" color="success.main">
+                    {trend}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            <Box sx={gradientStyle}>
+              <Icon />
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
 
   // Mock data for demo
   const mockTickets = [
@@ -129,98 +164,133 @@ const Dashboard = () => {
   const ticketsToUse = tickets.length > 0 ? tickets : mockTickets;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Welcome back! Here's what's happening.
-          </p>
-        </div>
-        <button
-          onClick={refreshData}
-          className="btn-icon"
-          disabled={refreshing}
-        >
-          <RefreshCwIcon className={`h-5 w-5 text-gray-600 dark:text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
+    <Container maxWidth="xl">
+      <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              fontWeight="bold"
+              sx={{
+                background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent'
+              }}
+            >
+              Dashboard
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Welcome back! Here's what's happening.
+            </Typography>
+          </Box>
+          <IconButton
+            onClick={refreshData}
+            disabled={refreshing}
+            color="primary"
+          >
+            <RefreshIcon className={refreshing ? 'animate-spin' : ''} />
+          </IconButton>
+        </Box>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Tickets"
-          value={stats.totalTickets || 5}
-          icon={TicketIcon}
-          color="bg-gradient-to-br from-blue-500 to-blue-600"
-          trend="+12% from last week"
-        />
-        <StatCard
-          title="Open Tickets"
-          value={stats.openTickets || 3}
-          icon={AlertTriangleIcon}
-          color="bg-gradient-to-br from-orange-500 to-orange-600"
-        />
-        <StatCard
-          title="Resolved Tickets"
-          value={stats.resolvedTickets || 2}
-          icon={CheckCircleIcon}
-          color="bg-gradient-to-br from-green-500 to-green-600"
-          trend="+8% resolution rate"
-        />
-        <StatCard
-          title="Critical Issues"
-          value={stats.criticalTickets || 1}
-          icon={XCircleIcon}
-          color="bg-gradient-to-br from-red-500 to-red-600"
-        />
-      </div>
+        {/* Stats Grid */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6} lg={3}>
+            <StatCard
+              title="Total Tickets"
+              value={stats.totalTickets || 5}
+              icon={TicketIcon}
+              color={`linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`}
+              trend="+12% from last week"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <StatCard
+              title="Open Tickets"
+              value={stats.openTickets || 3}
+              icon={AlertTriangleIcon}
+              color={`linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`}
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <StatCard
+              title="Resolved Tickets"
+              value={stats.resolvedTickets || 2}
+              icon={CheckCircleIcon}
+              color={`linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`}
+              trend="+8% resolution rate"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <StatCard
+              title="Critical Issues"
+              value={stats.criticalTickets || 1}
+              icon={XCircleIcon}
+              color={`linear-gradient(135deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`}
+            />
+          </Grid>
+        </Grid>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          title="Online Devices"
-          value={stats.onlineDevices || 12}
-          icon={ServerIcon}
-          color="bg-gradient-to-br from-green-500 to-green-600"
-        />
-        <StatCard
-          title="Offline Devices"
-          value={stats.offlineDevices || 3}
-          icon={XCircleIcon}
-          color="bg-gradient-to-br from-red-500 to-red-600"
-        />
-        <StatCard
-          title="Avg Resolution Time"
-          value={`${stats.avgResolutionTime || 4.5}h`}
-          icon={ClockIcon}
-          color="bg-gradient-to-br from-purple-500 to-purple-600"
-        />
-      </div>
+        {/* Secondary Stats */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              title="Online Devices"
+              value={stats.onlineDevices || 12}
+              icon={ServerIcon}
+              color={`linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              title="Offline Devices"
+              value={stats.offlineDevices || 3}
+              icon={XCircleIcon}
+              color={`linear-gradient(135deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              title="Avg Resolution Time"
+              value={`${stats.avgResolutionTime || 4.5}h`}
+              icon={ClockIcon}
+              color={`linear-gradient(135deg, ${theme.palette.secondary.main}, ${theme.palette.secondary.dark})`}
+            />
+          </Grid>
+        </Grid>
 
-      {/* Charts and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="h-full">
-          <TicketChart tickets={ticketsToUse} />
-        </div>
-        <div className="h-full">
-          <RecentTickets tickets={ticketsToUse.slice(0, 5)} />
-        </div>
-      </div>
+        {/* Charts and Recent Activity */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%' }}>
+              <TicketChart tickets={ticketsToUse} />
+            </Box>
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%' }}>
+              <RecentTickets tickets={ticketsToUse.slice(0, 5)} />
+            </Box>
+          </Grid>
+        </Grid>
 
-      {/* Device Status and Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="h-full">
-          <DeviceStatus devices={devices} />
-        </div>
-        <div className="h-full">
-          <AlertsPanel />
-        </div>
-      </div>
-    </div>
+        {/* Device Status and Alerts */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%' }}>
+              <DeviceStatus devices={devices} />
+            </Box>
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%' }}>
+              <AlertsPanel />
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+    </Container>
   );
 };
 

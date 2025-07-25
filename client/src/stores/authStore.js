@@ -12,7 +12,14 @@ export const useAuthStore = create((set) => ({
   login: async (credentials, rememberMe = false) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.post('/auth/login', credentials);
+      // Transform credentials to match server expectations
+      // Server expects 'username' field, but our form sends 'email'
+      const loginData = {
+        username: credentials.email,
+        password: credentials.password
+      };
+      
+      const response = await api.post('/auth/login', loginData);
       const { user, token, refreshToken } = response.data;
       
       // Store authentication data based on rememberMe preference

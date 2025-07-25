@@ -1,6 +1,16 @@
 import React from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  useTheme,
+  alpha
+} from '@mui/material';
 
 const TicketChart = ({ tickets }) => {
+  const theme = useTheme();
   // This would normally use a charting library like Chart.js or Recharts
   // For now, we'll create a simple visual representation
   
@@ -16,23 +26,23 @@ const TicketChart = ({ tickets }) => {
   
   const getStatusColor = (status) => {
     const colors = {
-      new: 'rgba(59, 130, 246, 0.9)', // blue
-      assigned: 'rgba(139, 92, 246, 0.9)', // purple
-      in_progress: 'rgba(245, 158, 11, 0.9)', // amber
-      pending: 'rgba(249, 115, 22, 0.9)', // orange
-      resolved: 'rgba(16, 185, 129, 0.9)', // green
-      closed: 'rgba(107, 114, 128, 0.9)', // gray
-      cancelled: 'rgba(239, 68, 68, 0.9)' // red
+      new: theme.palette.primary.main,
+      assigned: theme.palette.secondary.main,
+      in_progress: theme.palette.warning.main,
+      pending: theme.palette.warning.dark,
+      resolved: theme.palette.success.main,
+      closed: theme.palette.grey[500],
+      cancelled: theme.palette.error.main
     };
     return colors[status] || colors.new;
   };
   
   const getPriorityColor = (priority) => {
     const colors = {
-      low: 'rgba(59, 130, 246, 0.9)', // blue
-      medium: 'rgba(245, 158, 11, 0.9)', // amber
-      high: 'rgba(249, 115, 22, 0.9)', // orange
-      critical: 'rgba(239, 68, 68, 0.9)' // red
+      low: theme.palette.primary.main,
+      medium: theme.palette.warning.main,
+      high: theme.palette.warning.dark,
+      critical: theme.palette.error.main
     };
     return colors[priority] || colors.medium;
   };
@@ -75,97 +85,139 @@ const TicketChart = ({ tickets }) => {
   const totalTickets = tickets.length || 5; // Use 5 as default if no tickets
   
   return (
-    <div className="dashboard-card h-full">
-      <div className="dashboard-card-header">
-        <h2 className="dashboard-card-title">Ticket Overview</h2>
-      </div>
-      <div className="space-y-6 mt-4">
+    <Card elevation={2} sx={{ height: '100%' }}>
+      <CardHeader title="Ticket Overview" />
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Status Distribution */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Status Distribution</h4>
-          <div className="h-5 w-full glass rounded-full overflow-hidden">
-            {Object.entries(effectiveStatusCounts).map(([status, count], index) => {
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            Status Distribution
+          </Typography>
+          <Box
+            sx={{
+              height: 10,
+              width: '100%',
+              bgcolor: alpha(theme.palette.background.paper, 0.5),
+              borderRadius: 5,
+              overflow: 'hidden',
+              display: 'flex'
+            }}
+          >
+            {Object.entries(effectiveStatusCounts).map(([status, count]) => {
               const width = (count / totalTickets) * 100;
               return (
-                <div
+                <Box
                   key={status}
-                  className="h-full float-left"
-                  style={{
+                  sx={{
+                    height: '100%',
                     width: `${width}%`,
-                    background: `linear-gradient(to right, ${getStatusColor(status)}, ${getStatusColor(status)}cc)`
+                    background: `linear-gradient(to right, ${getStatusColor(status)}, ${alpha(getStatusColor(status), 0.8)})`,
                   }}
                   title={`${statusLabels[status]}: ${count} (${width.toFixed(1)}%)`}
                 />
               );
             })}
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3">
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1.5 }}>
             {Object.entries(effectiveStatusCounts).map(([status, count]) => (
-              <div key={status} className="flex items-center">
-                <div
-                  className="w-3 h-3 rounded-full mr-1"
-                  style={{ backgroundColor: getStatusColor(status) }}
+              <Box key={status} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: getStatusColor(status),
+                    mr: 0.5
+                  }}
                 />
-                <span className="text-xs text-gray-600 dark:text-gray-400">
+                <Typography variant="caption" color="text.secondary">
                   {statusLabels[status]}: {count}
-                </span>
-              </div>
+                </Typography>
+              </Box>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
         
         {/* Priority Distribution */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Priority Distribution</h4>
-          <div className="grid grid-cols-4 gap-2">
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            Priority Distribution
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
             {Object.entries(effectivePriorityCounts).map(([priority, count]) => {
               const percentage = (count / totalTickets) * 100;
               return (
-                <div key={priority} className="flex flex-col items-center">
-                  <div className="w-full glass rounded-full h-24 relative overflow-hidden">
-                    <div
-                      className="absolute bottom-0 w-full"
-                      style={{
+                <Box key={priority} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 96,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.background.paper, 0.5),
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        width: '100%',
                         height: `${percentage}%`,
-                        background: `linear-gradient(to top, ${getPriorityColor(priority)}, ${getPriorityColor(priority)}80)`
+                        background: `linear-gradient(to top, ${getPriorityColor(priority)}, ${alpha(getPriorityColor(priority), 0.5)})`
                       }}
                     />
-                  </div>
-                  <span className="text-xs font-medium mt-1 text-gray-700 dark:text-gray-300">
+                  </Box>
+                  <Typography variant="caption" fontWeight="medium" sx={{ mt: 0.5 }}>
                     {priorityLabels[priority]}
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
                     {count} ({percentage.toFixed(1)}%)
-                  </span>
-                </div>
+                  </Typography>
+                </Box>
               );
             })}
-          </div>
-        </div>
+          </Box>
+        </Box>
         
         {/* Weekly Trend */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Weekly Trend</h4>
-          <div className="glass rounded-lg p-4">
-            <div className="flex items-end h-32 space-x-2">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            Weekly Trend
+          </Typography>
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: alpha(theme.palette.background.paper, 0.5),
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 128, gap: 1 }}>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                 // Generate random heights for demo
                 const height = Math.floor(Math.random() * 70) + 10;
                 return (
-                  <div key={day} className="flex-1 flex flex-col items-center">
-                    <div
-                      className="w-full rounded-t-sm bg-gradient-to-t from-blue-500/80 to-blue-400/50"
-                      style={{ height: `${height}%` }}
-                    ></div>
-                    <span className="text-xs mt-1 text-gray-500 dark:text-gray-400">{day}</span>
-                  </div>
+                  <Box key={day} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: `${height}%`,
+                        borderTopLeftRadius: 2,
+                        borderTopRightRadius: 2,
+                        background: `linear-gradient(to top, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.light, 0.5)})`
+                      }}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {day}
+                    </Typography>
+                  </Box>
                 );
               })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

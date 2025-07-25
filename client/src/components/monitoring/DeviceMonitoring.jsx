@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDeviceStore } from '../../stores/deviceStore';
+import { useSocketStore } from '../../stores/socketStore';
 
 // Material UI imports
 import {
@@ -44,15 +45,39 @@ import {
 } from '@mui/icons-material';
 
 const DeviceMonitoring = () => {
-  const { devices, fetchDevices, loading, error } = useDeviceStore();
+  const { devices, fetchDevices, loading, error, updateDeviceInStore } = useDeviceStore();
+  const { socket, on, off } = useSocketStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const theme = useTheme();
 
+  // Initial fetch of devices
   useEffect(() => {
     fetchDevices();
   }, [fetchDevices]);
+
+  // Subscribe to real-time device updates
+  useEffect(() => {
+    if (socket) {
+      // Listen for device updates
+      const handleDeviceUpdate = (data) => {
+        console.log('Device update received:', data);
+        if (data && data.deviceId) {
+          // Update the device in the store
+          updateDeviceInStore(data.deviceId, data);
+        }
+      };
+
+      // Subscribe to device_updated events
+      on('device_updated', handleDeviceUpdate);
+
+      // Cleanup function
+      return () => {
+        off('device_updated', handleDeviceUpdate);
+      };
+    }
+  }, [socket, on, off, updateDeviceInStore]);
 
   // Filter devices based on search and filters
   const filteredDevices = devices.filter(device => {

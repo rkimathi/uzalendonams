@@ -95,5 +95,39 @@ export const useDeviceStore = create((set, get) => ({
 
   clearDevice: () => {
     set({ device: null });
+  },
+
+  // Update a device in the store with real-time data
+  updateDeviceInStore: (deviceId, updateData) => {
+    set(state => {
+      // Find the device in the devices array
+      const updatedDevices = state.devices.map(device => {
+        if (device._id === deviceId) {
+          // Update the device with the new data
+          return {
+            ...device,
+            status: updateData.status || device.status,
+            lastSeen: updateData.lastSeen || device.lastSeen,
+            metrics: updateData.metrics || device.metrics
+          };
+        }
+        return device;
+      });
+
+      // If the currently selected device is being updated, update it too
+      const updatedDevice = state.device && state.device._id === deviceId
+        ? {
+            ...state.device,
+            status: updateData.status || state.device.status,
+            lastSeen: updateData.lastSeen || state.device.lastSeen,
+            metrics: updateData.metrics || state.device.metrics
+          }
+        : state.device;
+
+      return {
+        devices: updatedDevices,
+        device: updatedDevice
+      };
+    });
   }
 }));

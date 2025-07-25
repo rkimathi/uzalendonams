@@ -1,18 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangleIcon,
-  ServerIcon,
-  CpuIcon,
-  HardDriveIcon,
-  ThermometerIcon,
-  WifiIcon,
-  BellIcon,
-  ChevronRightIcon,
-  ShieldIcon
-} from 'lucide-react';
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  useTheme,
+  alpha
+} from '@mui/material';
+import {
+  Warning as AlertTriangleIcon,
+  Storage as ServerIcon,
+  Memory as CpuIcon,
+  SdStorage as HardDriveIcon,
+  Thermostat as ThermometerIcon,
+  Wifi as WifiIcon,
+  Notifications as BellIcon,
+  ChevronRight as ChevronRightIcon,
+  Shield as ShieldIcon
+} from '@mui/icons-material';
 
 const AlertsPanel = () => {
+  const theme = useTheme();
   // Mock alerts data
   const alerts = [
     {
@@ -104,26 +114,26 @@ const AlertsPanel = () => {
   const getAlertColor = (type) => {
     switch (type) {
       case 'critical':
-        return 'bg-red-500/20 text-red-600 dark:bg-red-900/30 dark:text-red-300';
+        return theme.palette.error;
       case 'warning':
-        return 'bg-yellow-500/20 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return theme.palette.warning;
       case 'info':
-        return 'bg-blue-500/20 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300';
+        return theme.palette.info;
       default:
-        return 'bg-gray-500/20 text-gray-600 dark:bg-gray-800/50 dark:text-gray-300';
+        return theme.palette.grey;
     }
   };
 
   const getAlertBorder = (type) => {
     switch (type) {
       case 'critical':
-        return 'border-l-4 border-red-500 dark:border-red-600';
+        return `4px solid ${theme.palette.error.main}`;
       case 'warning':
-        return 'border-l-4 border-yellow-500 dark:border-yellow-600';
+        return `4px solid ${theme.palette.warning.main}`;
       case 'info':
-        return 'border-l-4 border-blue-500 dark:border-blue-600';
+        return `4px solid ${theme.palette.info.main}`;
       default:
-        return '';
+        return 'none';
     }
   };
 
@@ -142,57 +152,98 @@ const AlertsPanel = () => {
   };
 
   return (
-    <div className="dashboard-card h-full">
-      <div className="dashboard-card-header">
-        <h2 className="dashboard-card-title">Active Alerts</h2>
-        <Link
-          to="/alerts"
-          className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          View all
-        </Link>
-      </div>
+    <Card elevation={2} sx={{ height: '100%' }}>
+      <CardHeader
+        title="Active Alerts"
+        action={
+          <Link
+            to="/alerts"
+            style={{
+              color: theme.palette.primary.main,
+              textDecoration: 'none',
+              fontSize: '0.875rem'
+            }}
+          >
+            View all
+          </Link>
+        }
+      />
       
-      <div className="mt-4">
+      <CardContent sx={{ pt: 0 }}>
         {alerts.length === 0 ? (
-          <div className="text-center py-10 glass rounded-lg">
-            <BellIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">No active alerts</p>
-          </div>
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 5,
+              borderRadius: 2,
+              bgcolor: alpha(theme.palette.background.paper, 0.5)
+            }}
+          >
+            <BellIcon
+              sx={{
+                fontSize: 48,
+                color: theme.palette.text.disabled,
+                mb: 1.5
+              }}
+            />
+            <Typography color="text.secondary">No active alerts</Typography>
+          </Box>
         ) : (
-          <div className="space-y-3">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {alerts.map((alert) => (
-              <Link
+              <Card
                 key={alert.id}
+                component={Link}
                 to={`/alerts/${alert.id}`}
-                className={`block glass-card p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 ${getAlertBorder(alert.type)}`}
+                sx={{
+                  p: 2,
+                  display: 'block',
+                  textDecoration: 'none',
+                  bgcolor: alpha(theme.palette.background.paper, 0.5),
+                  transition: 'all 0.2s',
+                  borderLeft: getAlertBorder(alert.type),
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.background.paper, 0.8)
+                  }
+                }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-full ${getAlertColor(alert.type)}`}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: '50%',
+                        bgcolor: alpha(getAlertColor(alert.type).main, 0.1),
+                        color: getAlertColor(alert.type).main
+                      }}
+                    >
                       {getAlertIcon(alert.type, alert.metric)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                    </Box>
+                    <Box>
+                      <Typography variant="body1" fontWeight="medium" color="text.primary">
                         {alert.message}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center mr-3">
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', fontSize: '0.875rem', color: 'text.secondary' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
                           {getDeviceIcon(alert.deviceType)}
-                          <span className="ml-1">{alert.device}</span>
-                        </div>
-                        <span>{getTimeAgo(alert.timestamp)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                </div>
-              </Link>
+                          <Typography variant="body2" sx={{ ml: 0.5 }}>
+                            {alert.device}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2">
+                          {getTimeAgo(alert.timestamp)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <ChevronRightIcon sx={{ color: theme.palette.text.disabled }} />
+                </Box>
+              </Card>
             ))}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
