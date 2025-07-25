@@ -15,6 +15,9 @@ import Sidebar from './components/layout/Sidebar'
 import Dashboard from './components/dashboard/Dashboard'
 import TicketList from './components/tickets/TicketList'
 import DeviceMonitoring from './components/monitoring/DeviceMonitoring'
+import AlertsPage from './components/alerts/AlertsPage'
+import ReportsPage from './components/reports/ReportsPage'
+import SettingsPage from './components/settings/SettingsPage'
 import AdminPanel from './components/admin/AdminPanel'
 import Login from './components/auth/Login'
 import Register from './components/auth/Register'
@@ -142,6 +145,9 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tickets" element={<TicketList />} />
               <Route path="/monitoring" element={<DeviceMonitoring />} />
+              <Route path="/alerts" element={<AlertsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/admin" element={<AdminPanel />} />
             </Route>
           </Route>
